@@ -229,6 +229,8 @@ if __name__ == '__main__':
                 generate_btn = gr.Button("Generate", variant='primary')
                 ai_cover = gr.Audio(label='AI Cover', show_share_button=False)
 
+            take_report = gr.Textbox(label='Take quality report', lines=6, interactive=False, info='Score, median pitch drift and the time ranges worth re-listening to')
+
             ref_btn.click(update_models_list, None, outputs=rvc_model)
             is_webui = gr.Number(value=1, visible=False)
             generate_btn.click(song_cover_pipeline,

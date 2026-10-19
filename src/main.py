@@ -20,6 +20,8 @@ from pydub import AudioSegment
 
 from mdx import run_mdx
 from rvc import Config, load_hubert, get_vc, rvc_infer
+from take_quality import score_take
+from take_report import summary_line, write_report
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -290,6 +292,11 @@ def song_cover_pipeline(song_input, voice_model, pitch_change, keep_files,
             display_progress('[~] Converting voice using RVC...', 0.5, is_webui, progress)
             voice_change(voice_model, main_vocals_dereverb_path, ai_vocals_path, pitch_change, f0_method, index_rate, filter_radius, rms_mix_rate, protect, crepe_hop_length, is_webui)
 
+        display_progress('[~] Scoring the generated take...', 0.75, is_webui, progress)
+        take_result = score_take(main_vocals_dereverb_path, ai_vocals_path, f0_method=f0_method)
+        take_report_path = write_report(take_result, os.path.splitext(ai_vocals_path)[0] + '_take_report.json', main_vocals_dereverb_path, ai_vocals_path)
+        display_progress(summary_line(take_result), 0.78, is_webui, progress)
+
         display_progress('[~] Applying audio effects to Vocals...', 0.8, is_webui, progress)
         ai_vocals_mixed_path = add_audio_effects(ai_vocals_path, reverb_rm_size, reverb_wet, reverb_dry, reverb_damping)
 
@@ -310,7 +317,7 @@ def song_cover_pipeline(song_input, voice_model, pitch_change, keep_files,
                 if file and os.path.exists(file):
                     os.remove(file)
 
-        return ai_cover_path
+        return ai_cover_path, take_report_path
 
     except Exception as e:
         raise_exception(str(e), is_webui)
